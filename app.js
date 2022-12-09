@@ -8,6 +8,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const AppError = require('./utils/appError');
 const globalHandlerError = require('./controllers/errorController');
 
@@ -30,6 +31,19 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Serving static files
 // define path to work for static files
+
+app.use(cors());
+// app.use(cors({
+//   origin:'https://www.natours.com'
+// }));
+
+// http method for all non simple request(preflight phase) as put, patch, delete, send cookies and use nonstandard headers
+// * means all routes
+app.options('*', cors());
+
+// put, patch, delete, send cookie and other headers can be used just in specific url as tours/:id
+// app.options('/api/v1/tours/:id',cors())
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // third part middleware
@@ -98,8 +112,10 @@ app.use(
   next();
 }); */
 
-// this two routes actually are middlewares too
+// or add cors for specific router
+// app.use('/api/v1/tours',cors(), tourRouter);
 
+// this two routes actually are middlewares too
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
