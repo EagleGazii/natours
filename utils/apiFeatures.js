@@ -26,11 +26,11 @@ class APIFeatures {
 
     // regular expresion b - match that word only like gte or gtlet queryStr = JSON.stringify(queryObj);
     let queryStr = JSON.stringify(queryObj);
+
     queryStr = queryStr.replace(
       /\b(gte|gt|lte|lt)\b/g,
       (match) => `$${match}`
     );
-
     this.query.find(JSON.parse(queryStr));
     return this;
     // let query = Tour.find(JSON.parse(queryStr));
@@ -41,6 +41,7 @@ class APIFeatures {
       //sort('price ratingsAverage') if we have 2 or more object with same price, in that case we sort by second field, or more.
       // const sortedBy = req.query.sort.split(',').join(' ');
       const sortedBy = this.queryString.sort.replace(',', ' ');
+
       this.query = this.query.sort(sortedBy);
     } else {
       //default sort, createdAt
@@ -52,6 +53,7 @@ class APIFeatures {
   limitFields() {
     if (this.queryString.fields) {
       const fields = this.queryString.fields.split(',').join(' ');
+
       this.query = this.query.select(fields);
     } else {
       // - means do not include
@@ -70,5 +72,9 @@ class APIFeatures {
 
     return this;
   }
+
+  /*   populate(array) {
+    return this.populate(array);
+  } */
 }
 module.exports = APIFeatures;

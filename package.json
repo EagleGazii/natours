@@ -2,7 +2,7 @@
   "name": "expressjs",
   "version": "1.0.0",
   "description": "NodeJS using ExpressJS",
-  "main": "server.js",
+  "private": true,
   "scripts": {
     "start": "nodemon server.js",
     "start:prod": "NODE_ENV=production nodemon server.js",
@@ -11,6 +11,7 @@
   "author": "Gazi",
   "license": "ISC",
   "devDependencies": {
+    "css-loader": "^6.7.2",
     "eslint": "^8.23.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",
@@ -20,15 +21,39 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.31.8",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "html-loader": "^4.2.0",
+    "html-webpack-plugin": "^5.5.0",
     "nodemon": "^2.0.19",
-    "prettier": "^2.7.1"
+    "prettier": "^2.7.1",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   },
   "dependencies": {
+    "axios": "^1.2.1",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.2",
     "express": "^4.18.1",
+    "express-list-endpoints": "^6.0.0",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^6.6.0",
+    "helmet": "^6.0.0",
+    "hpp": "^0.2.3",
+    "html-to-text": "^9.0.1",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.15",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.8.0",
+    "pug": "^3.0.2",
+    "sharp": "^0.31.2",
     "slugify": "^1.6.5",
-    "validator": "^13.7.0"
+    "stripe": "^11.2.0",
+    "validator": "^13.7.0",
+    "xss-clean": "^0.1.1"
+  },
+  "engines": {
+    "node": ">=10.0.0"
   }
 }

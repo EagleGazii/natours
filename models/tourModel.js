@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const validator = require('validator');
+//const User = require('./userModel');
+//const validator = require('validator');
 
 // validator on String, like minLength, maxLength
 // validator on Number, like min, max
@@ -41,7 +42,7 @@ const tourSchema = mongoose.Schema(
       type: String,
       required: [true, 'A Tour must have a difficulty'],
       enum: {
-        values: ['easy', 'medium', 'difficulty'],
+        values: ['easy', 'medium', 'difficult'],
         message: 'Diffucilty is either: easy, medium or difficulty',
       },
     },
@@ -50,6 +51,8 @@ const tourSchema = mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
+      // Math.round() round the integers for that reason we make 6.666*10 = 66.66 and round as 67 and after that /10 = 6.7
+      set: (val) => Math.round(val * 10) / 10,
     },
     ratingsQuantity: {
       type: Number,
@@ -84,6 +87,35 @@ const tourSchema = mongoose.Schema(
       type: String,
       required: [true, 'A Tour must have a image cover'],
     },
+    startLocation: {
+      // geoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: {
+          values: ['Point'],
+          message: 'Location type must be a Point',
+        },
+      },
+      description: String,
+      coordinates: [Number],
+      address: String,
+    },
+    locations: [
+      {
+        description: String,
+        type: {
+          type: String,
+          default: 'Point',
+          enum: {
+            values: ['Point'],
+            message: 'Location type must be a Point',
+          },
+        },
+        coordinates: [Number],
+        day: Number,
+      },
+    ],
     images: [String],
     createdAt: {
       type: Date,
@@ -95,6 +127,14 @@ const tourSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // use this for embbeding guides from user model
+    // guides: Array,
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -102,11 +142,30 @@ const tourSchema = mongoose.Schema(
   }
 );
 
+// indexes
+// 1 meaning ascending (1 to 10)
+// -1 meaning descending (10 to 1)
+// compound indexes
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+
+// single index
+tourSchema.index({ slug: 1 });
+
+// we are useind 2dsphere index for geo
+tourSchema.index({ startLocation: '2dsphere' });
+
 // virtual property
 // we use function because we want to get access this keyword
 // we can not use durationWeeks in query because we do not have this field in database
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+// virtual populate - We do not store reviews in tour document but just when we called tour or tours will be an array of reviews
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
 });
 
 // middleware in mongoose document middleware, query, aggragate and model middleware
@@ -119,18 +178,35 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// Embbed guide user document into Tour document in create tour object NOT IN UPDATE
+/* tourSchema.pre('save', async function (next) {
+  const promGuides = this.guides.map(
+    async (id) => await User.findById(id)
+  );
+  this.guides = await Promise.all(promGuides);
+  next();
+}); */
+
 // post after
-tourSchema.post('save', function (docs, next) {
+/* tourSchema.post('save', function (docs, next) {
   console.log(docs);
   next();
 });
-
+ */
 // query middleware, works before (pre) or after (post) a query excuted
 // regular expression for all find query like find, findOne, findById...
 tourSchema.pre(/^find/, function (next) {
   //tourSchema.pre('find', function (next) {
   this.start = Date.now();
   this.find({ secretTour: { $ne: true } });
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
   next();
 });
 
@@ -142,8 +218,8 @@ tourSchema.post(/^find/, function (docs, next) {
 // aggreagetion middleware before(pre) and after(post) aggragete happened
 
 tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  //console.log(this.pipeline());
+  this.pipeline().push({ $match: { secretTour: { $ne: true } } });
+
   next();
 });
 
